@@ -1,0 +1,182 @@
+Connect to my Cluster in da Cloud--
+_______
+mongo "mongodb+srv://school-p6gut.mongodb.net/test" --username doftgrahn
+_______
+
+db.products.explain("executionStats").find().sort({color: -1, material: 1})
+
+//
+Sortering
+1 = stigande
+-1 = fallande
+
+//
+
+//Räkna
+db.products.count()
+
+//Limitera
+db.products.find().limit(5) Siffra i för att limitera
+
+// Sortera
+db.products.find().sort({price: -1})
+db.products.find().sort( {price: -1} )
+
+
+//less than
+db.products.find({ exp: { $lt: 100}})
+
+//Greater than
+db.products.find({ exp: { $gte: 1000}})
+
+// Visa vilka index som finns
+db.products.getIndexes()
+
+/Skapa Index
+db.products.createIndex({ exp: 1})
+db.products.createIndex({ exp: 1})
+
+//Drop All indexes
+db.products.dropIndexes()
+
+//Explain
+db.products.explain("executionStats").find().sort({exp: 1})
+db.products.explain("executionStats").find().sort({exp: 1, material: 1})
+
+// Droppa hela databasen
+db.dropDatabase()
+
+
+
+Aggregering
+Pipes och map-reduce
+I princip javascript funktioner.
+
+_______
+$group
+$limit
+$match
+$project
+______
+
+Hur stort värde har all exp?
+
+db.products.aggregate([
+    {
+    $group: {
+        _id: null,
+        totalValue: { $sum: "$exp" }
+        }
+    }
+])
+
+----------------------
+
+hur många av en viss race finns?
+
+db.products.aggregate([
+    {
+    $group: {
+        _id: "$name",
+        raceCount: { $sum: 1 }
+        }
+    }
+])
+
+-------------------
+Välj ut alla orcs och humans och ge de 100 gratis exp.
+
+välj ut  - match. Räkna ut nya värden för varje dokument - project.
+
+och släng bort fältet weapon.
+
+db.products.aggregate([
+    {
+        $match: {
+        $or: [
+            {name: "hammer"}, { name: "wrench"}
+        ]
+        }
+    }, {
+        $project: {
+            _id:1,
+            name:1,
+            category: 1,
+            price: { $inc: ["$price + 100"] }
+        }
+    }
+])
+
+
+Vad kostar den dyraste respektive dyraste verktyget för varje category?
+gruppering på färg, max och min på priset.
+
+db.products.aggregate([
+    {
+     $group: {
+        _id: "$name",
+        cheapest: {$min: "$price"},
+        expensive: {$max: "$price"},
+        medel: { $avg: "$price" }
+    }
+    }
+])
+
+
+
+Vilket är det tredje dyraste cyckeln?
+Välj ut cyckel, sortera efter pris. Välj ut en tredje med limit och skip.
+
+
+
+db.products.aggregate([
+    {
+    $match: { name: "bicycle" }
+    },
+    {
+    $sort: { price: - 1  }
+    },
+    {
+    $limit: 4
+    },
+    {
+    $skip: 3
+    }
+])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------

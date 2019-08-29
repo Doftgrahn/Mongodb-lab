@@ -1,0 +1,188 @@
+1 . Hur många dokument finns det i din collection?
+-----------------
+
+db.prodcuts.count()
+
+2. Hur stort värde har alla produkter tillsammans? (summera priset)?
+------------------
+
+db.products.aggregate([
+    {
+    $group: {
+        _id: null,
+        totalValue: { $sum: "$price" }
+        }
+    },
+    {
+        $project: { _id: 0 }
+    }
+])
+
+3. Sortera produkterna i första hand fallande efter pris, i andra hand i stigande bokstavsordning efter namn.
+
+db.products.find().sort({price: 1, name: 1})
+
+db.products.find().sort( {price: -1, name: -1clr})
+
+4. Vilka tre element kommer först i bokstavsordning, sorterat på namnet?
+(Det går att skriva ut alla element i ordning, men den bästa lösningen visar bara tre dokument.)
+
+db.products.find().sort( {name: 1} ).limit(3)
+
+5. Räkna ut det största och minsta värdet respektive medelvärdet för priset på produkterna.
+
+db.products.aggregate([
+    {
+    $group: {
+    _id: null,
+    cheapest: { $min: "$price" },
+    expensive: { $max: "$price" },
+    average: { $avg: "$price" }
+        }
+    }
+])
+
+
+6. Hur många produkter har ett värde större än medelvärdet? (du kan använda värdet du räknade ut i uppgift 2.5)
+
+db.products.find({ price: { $gte: 128.3 } }).count()
+
+
+7. Hur många produkter finns det i varje kategori? (gruppera på kategori)
+
+db.products.aggregate([
+    {
+    $group: {
+    _id: "$name",
+    inCategories: { $sum: 1 }
+        }
+    },
+])
+
+
+8. Välj ut en kategori och visa de fem dyraste produkterna. (match med mera).
+
+db.products.aggregate([
+    { $match: { category: "hobby" } },
+    { $sort: { price: -1 }},
+    { $limit: 5 }
+])
+
+9. Vilken är den tjugonde produkten, sorterat i bokstavsordning efter namn? (limit, skip)
+
+db.products.aggregate([
+    { $sort: { name: -1 } },
+    { $limit:  20},
+    { $skip: 19 },
+    { $project: {_id: 1, name: 1 }}
+])
+
+10. Välj en av era kategorier. Hur stort värde har alla produkter i den kategorin?
+
+db.products.aggregate([
+    { $match: {category: "professional"} },
+    { $group: { _id: null , totalValue: {$sum: "$price" } }}
+])
+
+_________________________________
+Index
+_________________________________
+
+2 Lägg till fler dokument i databasen, så att dina queries på uppgifterna 2.7, 2.8 och 2.9 tar mer än 5 sekunder att köra. Skriv ner hur lång tid respektive query tar att köra.
+
+
+2.7
+try1: "executionTimeMillis" : 10624,
+try2: "executionTimeMillis" : 11134,
+try3: "executionTimeMillis" : 10775
+
+2.8
+try1: "executionTimeMillis" : 9951,
+try2: "executionTimeMillis" : 10010,
+try3: "executionTimeMillis" : 10526
+
+2.9
+try1: "executionTimeMillis" : 10594,
+try2: "executionTimeMillis" : 9931,
+try3: "executionTimeMillis" : 10607
+
+
+_________________________________
+3. Lägg till index till databasen med hjälp skriptfilen.
+Kör dina queries och skriv ner tidsåtgången.
+Kör varje query minst tre gånger och ta medianvärdet.
+_________________________________
+
+2.7
+De är i princip liknande, då $group inte indexeras.
+
+2.8
+try1: "executionTimeMillis" : 0,
+try2: "executionTimeMillis" : 0,
+try3: "executionTimeMillis" : 0,
+
+2.9
+try1: "executionTimeMillis" : 8,
+try2: "executionTimeMillis" : 0,
+try3: "executionTimeMillis" : 0,
+
+__________
+Vad förväntar du dig ska hända med tidsåtgången?
+
+Jag föväntar mig att tidsåtgången skall sänkas, jag använder mig av liknande sortering som indexeringen finns i. Därför kommer mongoDb använda sig av dessa.
+
+Vad hände egentligen, blev det någon skillnad?
+Det blev en jäkla skillnad! Lite intressant att vissa aggregations inte funkar med index!
+
+Vilka index gjorde störst skillnad?
+jag använde mig av två index, men  {  category: 1, price: -1}  och {name: -1} gjorde helt klart susen!
+
+Provade du några index som inte gjorde någon skillnad? Kan du förklara varför?
+Det var väl på första testet där $group inte fungerade med indexering. Man kanske kan göra det på ett smidigare sätt? Återstår att se.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+__
